@@ -14,6 +14,20 @@ main :: IO ()
 main = do 
        mainloop (Map.fromList[])
 
+menuEjemplo :: Estado -> IO ()
+menuEjemplo estado = do
+  putStr ">> "
+  inpStr <- getLine
+  let tokens  = words inpStr
+  let comando = tokens!!0
+  
+  case comando of    
+     "fin" -> do
+                 putStrLn "Saliendo..."
+     _     -> do
+                 putStrLn $ "Todos son desconocidos ("++ comando ++"): '" ++ inpStr ++ "'" 
+                 menuEjemplo estado
+
 mainloop :: Estado -> IO ()
 mainloop estado = do
   putStr ">> "
@@ -29,10 +43,12 @@ mainloop estado = do
                mainloop estado
 -- cuando sucede que debemos cambiar, debemos hacer un nuevo estado y pasarlo como parametro
      "guardar" -> do
-               putStrLn ">>> Nombre archivo salida: "
-               nombreArchivo <- getLine
-               putStrLn $ "Archivo " ++ nombreArchivo ++ " fue guardado"
-               mainloop estado     
+                    putStrLn ">>> Nombre archivo salida: "
+                    nombreArchivo <- getLine
+                    putStrLn $ "Archivo " ++ nombreArchivo ++ " fue guardado"
+                    mainloop estado  
+     "nuevoMenu" -> do
+                      menuEjemplo (Map.fromList[])
      "fin" -> do
                  putStrLn "Saliendo..."
      _     -> do
