@@ -97,6 +97,7 @@ menuENG titles notsignificants outputPath = do
                putStrLn ">>> Input file name: "
                putStr ">> "
                putStrLn $ "---- Basic rotation has been done ------"
+               ----- Agregar llamada a función kwic y escrbir en archivo ----
                print (typeOf (kwic titles notsignificants))
                sequence_ (printKwic titles notsignificants)
                escribir outputPath "Hasasasola \nEsta es la segunda linea"
