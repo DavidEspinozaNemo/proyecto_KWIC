@@ -15,9 +15,6 @@ toWords [] = []
 toWords (x:xs) | x == ' '  = toWords (dropWhile (' ' ==) xs)
                | otherwise = (x:takeWhile (' ' /=) xs) : toWords (dropWhile (' ' /=) xs)
 
-rotations xs = [ drop i xs ++ take i xs | i <- [0 .. n] ]
-               where n = (length xs) - 1
-
 lowercase = map toLower
 lowercases = map lowercase
 
@@ -44,6 +41,14 @@ getWords path = do contents <- readFile path
 getLines :: FilePath -> IO [String]
 getLines path = do contents <- readFile path
                    return (lines contents)
+
+printWords ts = map toWords ts
+printSep ts ns = (map sep (map toWords ts))
+printRotations ts ns = map (`sigRotations` ns) (map sep (map toWords ts))
+
+-- oraciones[ oracion[rotacion["wergwergwerg","gertgertgetrg"] ,  rotacion["wergwergwerg","gertgertgetrg"] ]]
+--printSpaces ts ns = map putSpaces ((printRotations ts ns) !! 0)
+
 
 -- Escribir contenido en path
 escribir :: FilePath -> String -> IO()
@@ -97,10 +102,7 @@ menuENG titles notsignificants outputPath = do
                putStrLn ">>> Input file name: "
                putStr ">> "
                putStrLn $ "---- Basic rotation has been done ------"
-               ----- Agregar llamada a función kwic y escrbir en archivo ----
-               print (typeOf (kwic titles notsignificants))
-               sequence_ (printKwic titles notsignificants)
-               escribir outputPath "Hasasasola \nEsta es la segunda linea"
+               print ((printRotations titles notsignificants))
                putStrLn $ "---- Basic rotation has been done ------"
                menuENG titles notsignificants outputPath
      "align" -> do
