@@ -47,7 +47,7 @@ printSep ts ns = (map sep (map toWords ts))
 printRotations ts ns = map (`sigRotations` ns) (map sep (map toWords ts))
 
 -- oraciones[ oracion[rotacion["wergwergwerg","gertgertgetrg"] ,  rotacion["wergwergwerg","gertgertgetrg"] ]]
---printSpaces ts ns = map putSpaces ((printRotations ts ns) !! 0)
+printSpaces ts ns = map putSpaces ((printRotations ts ns) !! 0)
 
 
 -- Escribir contenido en path
@@ -102,7 +102,7 @@ menuENG titles notsignificants outputPath = do
                putStrLn ">>> Input file name: "
                putStr ">> "
                putStrLn $ "---- Basic rotation has been done ------"
-               print ((printRotations titles notsignificants))
+               print ((printSpaces titles notsignificants))
                putStrLn $ "---- Basic rotation has been done ------"
                menuENG titles notsignificants outputPath
      "align" -> do
