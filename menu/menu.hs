@@ -47,6 +47,22 @@ formatKwicOutput ts ns = concat(addNewLineOutputs (nub(sort(concat(generateAllKw
 escribir :: FilePath -> String -> IO()
 escribir path contenido = writeFile path (contenido)
 
+-- resultado alineado 
+-- 0. Volver todo el string en minusculas.
+--    A partir de aqui ir por lineas, y rehacer el string
+-- 1. Obtener la palabra importante (la primera)
+-- 1.1 Volverla en mayuscula
+-- 2. Avanzar hasta pegar con ><, vamos pegando todo a la derecha de la palabra principal
+-- 3. Ir contando los letras restantes, y las vamos pegando a la izquierda de la principal
+-- 3.1 guardamos todo en un arreglo
+-- 3.2 obtenemos el mas largo, sin afectar el orden
+-- 4. la funcion que aplica todo necesita; el string resultante de 3., 3.1, y 3.2
+--     A partir de aqui va linea a linea
+-- 4.1 toma una linea, el correspodiente de 3.1, y el 3.2
+-- 4.2 agrega espacios en blanco, segun la diferencia entre 3.1 y 3.2
+-- 4.3 rehace el string, linea por linea
+-- fin del resultado alineado
+
 type Estado = Map String Integer
 
 main :: IO ()
