@@ -10,6 +10,7 @@ import System.IO
 import System.Directory
 import Data.Typeable
 
+-- Codigo profe
 toWords :: [Char] -> [[Char]] 
 toWords [] = []
 toWords (x:xs) | x == ' '  = toWords (dropWhile (' ' ==) xs)
