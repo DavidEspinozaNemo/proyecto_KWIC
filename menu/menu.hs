@@ -25,12 +25,9 @@ putSpaces xss = tail (concat (map (' ':) xss))
 
 sep xs = init xs ++ [last xs ++ " ><"]
 
-kwic notSignificants = nub . sort . concat . map pre
-       where pre ys = map putSpaces (sigRotations (sep (toWords ys)) notSignificants)
+kwic titles notSignificants = map putSpaces (sigRotations (sep (toWords titles)) notSignificants)
 
-printKwic ts ns = map putStrLn (kwic ts ns)
-
-writeResults output ts ns = map escribir (kwic ts ns)
+addNewLineOutputs lista = map (\x -> concat(x : [" \n "])) lista
 
 -- Cargar palabras de archivo de texto en lista.
 getWords :: FilePath -> IO [String]
@@ -42,13 +39,8 @@ getLines :: FilePath -> IO [String]
 getLines path = do contents <- readFile path
                    return (lines contents)
 
-printWords ts = map toWords ts
-printSep ts ns = (map sep (map toWords ts))
-printRotations ts ns = map (`sigRotations` ns) (map sep (map toWords ts))
-
--- oraciones[ oracion[rotacion["wergwergwerg","gertgertgetrg"] ,  rotacion["wergwergwerg","gertgertgetrg"] ]]
-printSpaces ts ns = map putSpaces ((printRotations ts ns) !! 0)
-
+generateAllKwic ts ns = map (`kwic` ns) ts
+formatKwicOutput ts ns = concat(addNewLineOutputs (nub(sort(concat(generateAllKwic ts ns)))))
 
 -- Escribir contenido en path
 escribir :: FilePath -> String -> IO()
@@ -81,28 +73,41 @@ menuENG titles notsignificants outputPath = do
                putStr ">> "
                nombreArchivo <- getLine
                titles <- getLines nombreArchivo
-               mapM_ print titles
-               putStrLn $ "File " ++ nombreArchivo ++ " was load"
+               -- mapM_ print titles
+               putStrLn $ "File " ++ nombreArchivo ++ " was loaded"
                menuENG titles notsignificants outputPath
      "notSignificant" -> do
                putStrLn ">>> Input file name: "
                putStr ">> "
                nombreArchivo <- getLine
                nosignificativos <- getWords nombreArchivo
-               mapM_ print nosignificativos
-               putStrLn $ "File " ++ nombreArchivo ++ " was load"
+               -- mapM_ print nosignificativos
+               putStrLn $ "File " ++ nombreArchivo ++ " was loaded"
                menuENG titles notsignificants outputPath
      "setOutput" -> do
                putStrLn ">>> Output file name: "
                putStr ">> "
                outputPath <- getLine
-               putStrLn $ "File " ++ outputPath ++ " was saved"
-               menuENG titles notsignificants outputPath
+               -- Revisar si el archivo existe
+               existe <- doesFileExist outputPath
+               -- Si el archivo existe, imprime mensaje, sino escribir resultado en path de salida. Parametros: path, contenido
+               if existe
+                     then do putStrLn "------ El archivo existe. Quiere sobreescribir valores? y/n ------"
+                             override <- getLine
+                             if override == "y"
+                               then do putStrLn "------ Path guardado existosamente ------"
+                                       menuENG titles notsignificants outputPath
+                               else do putStrLn "------ Output path is now empty ------"
+                                       menuENG titles notsignificants ""
+                     else do putStrLn "------ Path guardado existosamente ------"
+                             menuENG titles notsignificants outputPath
      "basic" -> do
                putStrLn ">>> Input file name: "
                putStr ">> "
                putStrLn $ "---- Basic rotation has been done ------"
-               print ((printSpaces titles notsignificants))
+               -- print ((formatKwicList titles notsignificants))
+               let outputString = (formatKwicOutput titles notsignificants)
+               escribir outputPath outputString
                putStrLn $ "---- Basic rotation has been done ------"
                menuENG titles notsignificants outputPath
      "align" -> do
