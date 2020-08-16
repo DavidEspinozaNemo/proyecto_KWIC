@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 -- menu del proyecto III
 import Data.Map (Map)             -- This just imports the type name
 import qualified Data.Map as Map  -- Imports everything else, but with names 
@@ -5,10 +7,13 @@ import qualified Data.Map as Map  -- Imports everything else, but with names
 
 import Prelude hiding (null, lookup, map, filter)
 import Data.Char
-import Data.List (sort,map, nub, concat, filter)
+import Data.List (sort,map, nub, concat, filter, sortBy)
 import System.IO
 import System.Directory
 import Data.Typeable
+
+
+-- data Shape = Circle Float Float Float | Rectangle Float Float Float Float   
 
 -- Codigo profe
 toWords :: [Char] -> [[Char]] 
@@ -17,15 +22,36 @@ toWords (x:xs) | x == ' '  = toWords (dropWhile (' ' ==) xs)
                | otherwise = (x:takeWhile (' ' /=) xs) : toWords (dropWhile (' ' /=) xs)
 
 lowercase = map toLower
+uppercase = map toUpper
 lowercases = map lowercase
 
--- Filtra listas que tienen como primer elemento una palabra no significativa
-getSignificants titles ns = filter (\x -> not (lowercase(head x) `elem` ns)) titles
--- getSignificants2 titles ns =  [ x | x <- titles, (not (lowercase(head x)) `elem` ns)]
+merge [] ys = ys
+merge (x:xs) ys = x:merge ys xs
+
+slice :: Int -> Int -> [a] -> [a]
+slice from to xs = take (to - from + 1) (drop from xs)
 
 -- Generar rotaciones para arreglo de strings. Recibe arreglo de strings y retorna lista arreglos con rotaciones
 sigRotations xs = [ drop i xs ++ take i xs | i <- [0 .. n]]
                   where n = (length xs) - 1
+
+
+-- Revisar si una palabra es toda mayuscula
+hasLower palabra = do let minusculas = filter (\x -> x `elem` ['a'..'z']) palabra
+                      ((length minusculas) > 0)
+
+
+-- Buscar indices que contienen palabras en mayuscula
+buscarIndicesMayusculas titleArray = [ i | i <- [0 .. n] , not (hasLower(titleArray!!i))]
+                  where n = (length titleArray) - 1
+
+-- Extraer elemento encontrado
+extraerIndiceSignificativo titleArray = (buscarIndicesMayusculas titleArray)!!0
+
+-- Generar rotaciones alineadas para arreglo de strings a partir de indice 1 (es necesario agregar rotacion para indice 0 y n -1 aparte).
+-- Recibe arreglo de strings y retorna lista arreglos con rotaciones
+sigAlineadas xs = [ ((slice 0 (i-1) xs)) ++ ([uppercase(xs!!i)]) ++ ((slice (i+1) ((length xs) - 1)) xs) | i <- [1 .. n]]
+                  where n = (length xs) - 2
 
 -- Agrega espacios a elementos de una lista y los concatena
 putSpaces xss = tail (concat (map (' ':) xss))
@@ -33,10 +59,37 @@ putSpaces xss = tail (concat (map (' ':) xss))
 -- Agregar separador al final de una oracion
 sep xs = init xs ++ [last xs ++ " ><"]
 
+-- Filtra listas que tienen como primer elemento una palabra no significativa
+getSignificants titles ns = filter (\x -> not (lowercase(head x) `elem` ns)) titles
+
+-- Filtra los titulos que poseen indexada una palabra significativa
+getAlignedSignificants titles ns = filter (\x -> not (lowercase(x!!(extraerIndiceSignificativo x)) `elem` ns)) titles
+
 -- Generar rotaciones a partir de un titulo y agregar espacios a cada elemento
 kwic title notSignificants = do let titleRotations = sigRotations (sep (toWords title))
                                 let filteredRotations = getSignificants titleRotations notSignificants
                                 map putSpaces (filteredRotations)
+
+
+-- Filtra los titulos que poseen indexada una palabra significativa
+quicksort :: (Ord [[String]]) => [[String]] -> [[String]]
+quicksort [] = []
+quicksort (x:xs) = quicksort [y | y <- xs, y!!(extraerIndiceSignificativo y) <= x!!(extraerIndiceSignificativo(x))] ++ [x] ++ quicksort [y | y <- xs, y!!(extraerIndiceSignificativo y) > x!!(extraerIndiceSignificativo x)]
+
+-- Generar rotaciones a partir de un array titulo y agregar espacios a cada elemento
+-- centrarTitulos titles longestSize = 
+
+
+-- Generar rotaciones a partir de un titulo y agregar espacios a cada elemento
+kwicAlineado title notSignificants = do 
+                                        let titleArray = toWords (lowercase(title))
+                                        let firstWord = [[(uppercase(titleArray!!0))] ++ ((slice 1 ((length titleArray) - 1)) titleArray)]
+                                        let titleRotations = merge (sigAlineadas (titleArray))  firstWord
+                                        let lastRotation = merge titleRotations [ (slice 0 ((length titleArray)-2) titleArray) ++ [uppercase(titleArray!!(length titleArray - 1))]]
+                                        let filteredRotations = getAlignedSignificants lastRotation notSignificants
+                                        --let ordenados = quicksort filteredRotations
+                                        map putSpaces (filteredRotations)
+
 
 -- Agrega un salto de linea a strings de una lista
 addNewLineOutputs lista = map (\x -> concat(x : [" \n "])) lista
@@ -57,8 +110,14 @@ getLines path = do contents <- readFile path
 -- For every element in a list of titles, generate rotations and add spaces and concatenate the words in each rotation
 generateAllKwic ts ns = map (`kwic` ns) ts
 
+-- For every element in a list of alined titles, generate rotations and add spaces and concatenate the words in each rotation
+generateAllKwicAlined ts ns = map (`kwicAlineado` ns) ts
+
 -- For every rotation, add a new line
 formatKwicOutput ts ns = concat(addNewLineOutputs (nub(sort(concat(generateAllKwic ts ns)))))
+
+-- For every rotation, add a new line
+formatKwicAlinedOutput ts ns = concat(addNewLineOutputs (nub(sort(concat(generateAllKwicAlined ts ns)))))
 
 -- Escribir contenido en path
 escribir :: FilePath -> String -> IO()
@@ -107,6 +166,11 @@ menuENG titles notsignificants outputPath = do
      "1" -> do
                 putStrLn ">>> Enter the name of the title file: "
                 putStr ">> "
+                -- if (checkCaps "hola") then do
+                --  putStrLn "yes"
+                -- else do
+                --  putStrLn "no"
+
                 nombreArchivo <- getLine
                 -- mapM_ print titles
                 exists1 <- doesFileExist nombreArchivo
@@ -158,7 +222,7 @@ menuENG titles notsignificants outputPath = do
                 menuENG titles notsignificants outputPath
      "5" -> do
                 -- print ((formatKwicList titles notsignificants))
-                let outputString = (formatKwicOutput titles notsignificants)
+                let outputString = (formatKwicAlinedOutput titles notsignificants)
                 escribir outputPath outputString
                 putStrLn $ "------------------------------------------------------------"
                 putStrLn $ "|--------------Aligned rotation has been done--------------|"
@@ -242,7 +306,7 @@ menuESP titles notsignificants outputPath = do
                 menuESP titles notsignificants outputPath
      "5" -> do
                 -- print ((formatKwicList titles notsignificants))
-                let outputString = (formatKwicOutput titles notsignificants)
+                let outputString = (formatKwicAlinedOutput titles notsignificants)
                 escribir outputPath outputString
                 putStrLn $ "------------------------------------------------------------"
                 putStrLn $ "|-----------Se ha realizado la rotación alineada-----------|"
