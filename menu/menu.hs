@@ -126,28 +126,28 @@ menuENG titles notsignificants outputPath = do
                 if exists2 then do
                   nosignificativos <- getWords nombreArchivo
                   putStrLn $ "File " ++ nombreArchivo ++ " was loaded" 
-                  menuENG titles notsignificants outputPath
+                  menuENG titles nosignificativos outputPath
                 else do
                   putStrLn $ "The file doesn´t exist"
                   menuENG titles [] outputPath
      "3" -> do
                 putStrLn ">>> Output file name: "
                 putStr ">> "
-                outputPath <- getLine
+                userPath <- getLine
                 -- Revisar si el archivo existe
-                existe <- doesFileExist outputPath
+                existe <- doesFileExist userPath
                 -- Si el archivo existe, imprime mensaje, sino escribir resultado en path de salida. Parametros: path, contenido
                 if existe then do 
                   putStrLn "------ The file already exists. Do you want to overwrite values? y / n ------"
                   override <- getLine
                   if override == "y" then do 
-                  putStrLn "------ Path saved successfully ------"
+                  putStrLn "------Output path saved successfully ------"
                   menuENG titles notsignificants outputPath
                   else do putStrLn "------ Output path is now empty ------"
                           menuENG titles notsignificants ""
                 else do 
-                  putStrLn $ "The file doesn´t exist"
-                  menuENG titles notsignificants ""
+                  putStrLn $ "Output path saved successfully"
+                  menuENG titles notsignificants userPath
      "4" -> do
                 -- print ((formatKwicList titles notsignificants))
                 let outputString = (formatKwicOutput titles notsignificants)
@@ -210,14 +210,14 @@ menuESP titles notsignificants outputPath = do
                 if exists2 then do
                   nosignificativos <- getWords nombreArchivo
                   putStrLn $ "Archivo " ++ nombreArchivo ++ " fue cargado" 
-                  menuESP titles notsignificants outputPath
+                  menuESP titles nosignificativos outputPath
                 else do
                   putStrLn $ "El archivo no existe"
                   menuESP titles [] outputPath
      "3" -> do
                 putStrLn ">>> Nombre del archivo de salida: "
                 putStr ">> "
-                outputPath <- getLine
+                userPath <- getLine
                 -- Revisar si el archivo existe
                 existe <- doesFileExist outputPath
                 -- Si el archivo existe, imprime mensaje, sino escribir resultado en path de salida. Parametros: path, contenido
@@ -230,8 +230,8 @@ menuESP titles notsignificants outputPath = do
                   else do putStrLn "------ La ruta de salida ahora está vacía ------"
                           menuESP titles notsignificants ""
                 else do 
-                  putStrLn $ "El archivo no existe"
-                  menuESP titles notsignificants ""
+                  putStrLn $ "El path de salido se ha guardado correctamente"
+                  menuENG titles notsignificants userPath
      "4" -> do
                 -- print ((formatKwicList titles notsignificants))
                 let outputString = (formatKwicOutput titles notsignificants)
