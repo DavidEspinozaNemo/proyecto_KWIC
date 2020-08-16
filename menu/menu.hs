@@ -71,118 +71,171 @@ main = do
 
 menuENG :: [String] -> [String] -> String -> IO ()
 menuENG titles notsignificants outputPath = do
-  putStrLn "                Welcome to the english menu"
+  putStrLn "-----------------------------------------------------------"
+  putStrLn "                Welcome to the english menu                "
+  putStrLn "-----------------------------------------------------------"
   putStrLn ">>> Please select one of the following options: "
-  putStrLn "- titles  (The entered path will be read)" 
-  putStrLn "- notSignificant  (The entered path will be read)" 
-  putStrLn "- setOutput  (The entered path will be used to store results)"
-  putStrLn "- basic (Basic rotation will be applied and stored in selected output)"
-  putStrLn "- align (Align rotation will be applied and stored in selected output)"
-  putStrLn "- exit"
+  putStrLn "1- titles          (The entered path will be read)" 
+  putStrLn "2- notSignificant  (The entered path will be read)" 
+  putStrLn "3- setOutput       (The entered path will be used to store results)"
+  putStrLn "4- basic           (Basic rotation will be applied and stored in selected output)"
+  putStrLn "5- align           (Align rotation will be applied and stored in selected output)"
+  putStrLn "6- exit"
   putStr ">> "
   inpStr <- getLine
   let tokens  = words inpStr
   let comando = tokens!!0
   
   case comando of
-     "titles" -> do
-               putStrLn ">>> Input file name: "
-               putStr ">> "
-               nombreArchivo <- getLine
-               titles <- getLines nombreArchivo
-               -- mapM_ print titles
-               putStrLn $ "File " ++ nombreArchivo ++ " was loaded"
-               menuENG titles notsignificants outputPath
-     "notSignificant" -> do
-               putStrLn ">>> Input file name: "
-               putStr ">> "
-               nombreArchivo <- getLine
-               nosignificativos <- getWords nombreArchivo
-               -- mapM_ print nosignificativos
-               putStrLn $ "File " ++ nombreArchivo ++ " was loaded"
-               menuENG titles notsignificants outputPath
-     "setOutput" -> do
-               putStrLn ">>> Output file name: "
-               putStr ">> "
-               outputPath <- getLine
-               -- Revisar si el archivo existe
-               existe <- doesFileExist outputPath
-               -- Si el archivo existe, imprime mensaje, sino escribir resultado en path de salida. Parametros: path, contenido
-               if existe
-                     then do putStrLn "------ El archivo existe. Quiere sobreescribir valores? y/n ------"
-                             override <- getLine
-                             if override == "y"
-                               then do putStrLn "------ Path guardado existosamente ------"
-                                       menuENG titles notsignificants outputPath
-                               else do putStrLn "------ Output path is now empty ------"
-                                       menuENG titles notsignificants ""
-                     else do putStrLn "------ Path guardado existosamente ------"
-                             menuENG titles notsignificants outputPath
-     "basic" -> do
-               putStrLn ">>> Input file name: "
-               putStr ">> "
-               putStrLn $ "---- Basic rotation has been done ------"
-               -- print ((formatKwicList titles notsignificants))
-               let outputString = (formatKwicOutput titles notsignificants)
-               escribir outputPath outputString
-               putStrLn $ "---- Basic rotation has been done ------"
-               menuENG titles notsignificants outputPath
-     "align" -> do
-               putStrLn ">>> Input file name: "
-               putStr ">> "
-               nombreArchivo <- getLine
-               putStrLn $ "Align rotation has been done"
-               menuENG titles notsignificants outputPath   
-     "exit" -> do
-               putStrLn "Exiting..."
+     "1" -> do
+                putStrLn ">>> Enter the name of the title file: "
+                putStr ">> "
+                nombreArchivo <- getLine
+                -- mapM_ print titles
+                exists1 <- doesFileExist nombreArchivo
+                if exists1 then do
+                  titles <- getLines nombreArchivo
+                  putStrLn $ "File " ++ nombreArchivo ++ " was loaded"
+                  menuENG titles notsignificants outputPath
+                else do
+                  putStrLn $ "The file doesn´t exist"
+                  menuENG [] notsignificants outputPath
+     "2" -> do
+                putStrLn ">>> Enter the name of the non-significant type file: "
+                putStr ">> "
+                nombreArchivo <- getLine
+                -- mapM_ print nosignificativos
+                exists2 <- doesFileExist nombreArchivo
+                if exists2 then do
+                  nosignificativos <- getWords nombreArchivo
+                  putStrLn $ "File " ++ nombreArchivo ++ " was loaded" 
+                  menuENG titles notsignificants outputPath
+                else do
+                  putStrLn $ "The file doesn´t exist"
+                  menuENG titles [] outputPath
+     "3" -> do
+                putStrLn ">>> Output file name: "
+                putStr ">> "
+                outputPath <- getLine
+                -- Revisar si el archivo existe
+                existe <- doesFileExist outputPath
+                -- Si el archivo existe, imprime mensaje, sino escribir resultado en path de salida. Parametros: path, contenido
+                if existe then do 
+                  putStrLn "------ The file already exists. Do you want to overwrite values? y / n ------"
+                  override <- getLine
+                  if override == "y" then do 
+                  putStrLn "------ Path saved successfully ------"
+                  menuENG titles notsignificants outputPath
+                  else do putStrLn "------ Output path is now empty ------"
+                          menuENG titles notsignificants ""
+                else do 
+                  putStrLn $ "The file doesn´t exist"
+                  menuENG titles notsignificants ""
+     "4" -> do
+                -- print ((formatKwicList titles notsignificants))
+                let outputString = (formatKwicOutput titles notsignificants)
+                escribir outputPath outputString
+                putStrLn $ "------------------------------------------------------------"
+                putStrLn $ "|---------------Basic rotation has been done---------------|"
+                putStrLn $ "------------------------------------------------------------"
+                menuENG titles notsignificants outputPath
+     "5" -> do
+                -- print ((formatKwicList titles notsignificants))
+                let outputString = (formatKwicOutput titles notsignificants)
+                escribir outputPath outputString
+                putStrLn $ "------------------------------------------------------------"
+                putStrLn $ "|--------------Aligned rotation has been done--------------|"
+                putStrLn $ "------------------------------------------------------------"
+                menuENG titles notsignificants outputPath   
+     "6" -> do
+                putStrLn "Exiting..."
      _     -> do
-               putStrLn $ "Unknown command ("++ comando ++"): '" ++ inpStr ++ "'" 
-               menuENG titles notsignificants outputPath
+                putStrLn $ "Unknown command ("++ comando ++"): '" ++ inpStr ++ "'" 
+                menuENG titles notsignificants outputPath
 
-menuESP :: Estado -> IO ()
-menuESP estado = do
-  putStrLn "                Bienvenido al menu en español"
+menuESP :: [String] -> [String] -> String -> IO ()
+menuESP titles notsignificants outputPath = do
+  putStrLn "-----------------------------------------------------------"
+  putStrLn "                Bienvenido al menu en español              "
+  putStrLn "-----------------------------------------------------------"
   putStrLn ">>> Por favor seleccione una de las siguientes opciones: "
-  putStrLn "- leer     (Se leera el archivo ingresado)" 
-  putStrLn "- guardar  (Se guardara el archivo ingresado)"
-  putStrLn "- basica   (Se aplicara la rotacion basica)"
-  putStrLn "- alineada (Se aplicara la rotacion alineada)"
-  putStrLn "- salir"
+  putStrLn "1- titulo           (Se leera la ruta ingresado)" 
+  putStrLn "2- noSignificativo  (Se leera la ruta ingresado)" 
+  putStrLn "3- fijarSalida      (Se almacenara el resultado en la ruta ingresado)"
+  putStrLn "4- basica           (Se aplicara la rotacion basica y se guardara en la salida seleccionada)"
+  putStrLn "5- alineada         (Se aplicara la rotacion alineada y se guardara en la salida seleccionada)"
+  putStrLn "6- salir"
   putStr ">> "
   inpStr <- getLine
   let tokens  = words inpStr
   let comando = tokens!!0
   
   case comando of
-     "leer" -> do
-               putStrLn ">>> Nombre archivo entrada: "
-               putStr ">> "
-               nombreArchivo <- getLine
-               putStrLn $ "Archivo " ++ nombreArchivo ++ " fue cargado"
-               menuESP estado
-     "guardar" -> do
-               putStrLn ">>> Nombre archivo salida: "
-               putStr ">> "
-               nombreArchivo <- getLine
-               putStrLn $ "Archivo " ++ nombreArchivo ++ " fue guardado"
-               menuESP estado
-     "basica" -> do
-               putStrLn ">>> Nombre archivo entrada: "
-               putStr ">> "
-               nombreArchivo <- getLine
-               putStrLn $ "Se ha hecho la rotación básica"
-               menuESP estado
-     "alineada" -> do
-               putStrLn ">>> Nombre archivo entrada: "
-               putStr ">> "
-               nombreArchivo <- getLine
-               putStrLn $ "Se ha hecho la rotación alineada"
-               menuESP estado   
-     "salir" -> do
-               putStrLn "Saliendo..."
+     "1" -> do
+                putStrLn ">>> Ingrese el nombre del archivo tipo titulo: "
+                putStr ">> "
+                nombreArchivo <- getLine
+                -- mapM_ print titles
+                exists1 <- doesFileExist nombreArchivo
+                if exists1 then do
+                  titles <- getLines nombreArchivo
+                  putStrLn $ "Archivo " ++ nombreArchivo ++ " fue cargado"
+                  menuESP titles notsignificants outputPath
+                else do
+                  putStrLn $ "El archivo no existe"
+                  menuESP [] notsignificants outputPath
+     "2" -> do
+                putStrLn ">>> Ingrese el nombre del archivo tipo no significativo: "
+                putStr ">> "
+                nombreArchivo <- getLine
+                -- mapM_ print nosignificativos
+                exists2 <- doesFileExist nombreArchivo
+                if exists2 then do
+                  nosignificativos <- getWords nombreArchivo
+                  putStrLn $ "Archivo " ++ nombreArchivo ++ " fue cargado" 
+                  menuESP titles notsignificants outputPath
+                else do
+                  putStrLn $ "El archivo no existe"
+                  menuESP titles [] outputPath
+     "3" -> do
+                putStrLn ">>> Nombre del archivo de salida: "
+                putStr ">> "
+                outputPath <- getLine
+                -- Revisar si el archivo existe
+                existe <- doesFileExist outputPath
+                -- Si el archivo existe, imprime mensaje, sino escribir resultado en path de salida. Parametros: path, contenido
+                if existe then do 
+                  putStrLn "------ El archivo ya existe. Quiere sobreescribir valores? y/n ------"
+                  override <- getLine
+                  if override == "y" then do 
+                  putStrLn "------ Ruta guardada correctamente ------"
+                  menuESP titles notsignificants outputPath
+                  else do putStrLn "------ La ruta de salida ahora está vacía ------"
+                          menuESP titles notsignificants ""
+                else do 
+                  putStrLn $ "El archivo no existe"
+                  menuESP titles notsignificants ""
+     "4" -> do
+                -- print ((formatKwicList titles notsignificants))
+                let outputString = (formatKwicOutput titles notsignificants)
+                escribir outputPath outputString
+                putStrLn $ "------------------------------------------------------------"
+                putStrLn $ "|------------Se ha realizado la rotación básica------------|"
+                putStrLn $ "------------------------------------------------------------"
+                menuESP titles notsignificants outputPath
+     "5" -> do
+                -- print ((formatKwicList titles notsignificants))
+                let outputString = (formatKwicOutput titles notsignificants)
+                escribir outputPath outputString
+                putStrLn $ "------------------------------------------------------------"
+                putStrLn $ "|-----------Se ha realizado la rotación alineada-----------|"
+                putStrLn $ "------------------------------------------------------------"
+                menuESP titles notsignificants outputPath   
+     "6" -> do
+                putStrLn "Saliendo..."
      _     -> do
-               putStrLn $ "Comando desconocido ("++ comando ++"): '" ++ inpStr ++ "'" 
-               menuESP estado
+                putStrLn $ "Comando Desconocido ("++ comando ++"): '" ++ inpStr ++ "'" 
+                menuESP titles notsignificants outputPath
 
 mainloop :: Estado -> IO ()
 mainloop estado = do
@@ -198,12 +251,10 @@ mainloop estado = do
   case comando of
      "esp" -> do
                putStrLn "---------------Cambiando al menu en español----------------"
-               menuESP (Map.fromList[])     
+               menuESP [] [] ""     
      "eng" -> do
                putStrLn "---------------Switching to the English menu---------------"
                menuENG [] [] ""
      _     -> do
                  putStrLn $ "Comando desconocido ("++ comando ++"): '" ++ inpStr ++ "'" 
                  mainloop estado
-
--- funciones necesarias
