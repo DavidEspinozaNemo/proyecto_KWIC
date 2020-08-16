@@ -5,7 +5,7 @@ import qualified Data.Map as Map  -- Imports everything else, but with names
 
 import Prelude hiding (null, lookup, map, filter)
 import Data.Char
-import Data.List (sort,map, nub, concat)
+import Data.List (sort,map, nub, concat, filter)
 import System.IO
 import System.Directory
 import Data.Typeable
@@ -18,16 +18,30 @@ toWords (x:xs) | x == ' '  = toWords (dropWhile (' ' ==) xs)
 lowercase = map toLower
 lowercases = map lowercase
 
-sigRotations xs notSignificants = [ drop i xs ++ take i xs | i <- [0 .. n], not ((lowercase (xs!!i)) `elem` notSignificants) ]
+-- Filtra listas que tienen como primer elemento una palabra no significativa
+getSignificants titles ns = filter (\x -> not (lowercase(head x) `elem` ns)) titles
+-- getSignificants2 titles ns =  [ x | x <- titles, (not (lowercase(head x)) `elem` ns)]
+
+-- Generar rotaciones para arreglo de strings. Recibe arreglo de strings y retorna lista arreglos con rotaciones
+sigRotations xs = [ drop i xs ++ take i xs | i <- [0 .. n]]
                   where n = (length xs) - 1
 
+-- Agrega espacios a elementos de una lista y los concatena
 putSpaces xss = tail (concat (map (' ':) xss))
 
+-- Agregar separador al final de una oracion
 sep xs = init xs ++ [last xs ++ " ><"]
 
-kwic titles notSignificants = map putSpaces (sigRotations (sep (toWords titles)) notSignificants)
+-- Generar rotaciones a partir de un titulo y agregar espacios a cada elemento
+kwic title notSignificants = do let titleRotations = sigRotations (sep (toWords title))
+                                let filteredRotations = getSignificants titleRotations notSignificants
+                                map putSpaces (filteredRotations)
 
+-- Agrega un salto de linea a strings de una lista
 addNewLineOutputs lista = map (\x -> concat(x : [" \n "])) lista
+
+-- Imprime rotaciones para titulos
+printRotations ts ns = map sigRotations (map sep (map toWords ts))
 
 -- Cargar palabras de archivo de texto en lista.
 getWords :: FilePath -> IO [String]
@@ -39,7 +53,10 @@ getLines :: FilePath -> IO [String]
 getLines path = do contents <- readFile path
                    return (lines contents)
 
+-- For every element in a list of titles, generate rotations and add spaces and concatenate the words in each rotation
 generateAllKwic ts ns = map (`kwic` ns) ts
+
+-- For every rotation, add a new line
 formatKwicOutput ts ns = concat(addNewLineOutputs (nub(sort(concat(generateAllKwic ts ns)))))
 
 -- Escribir contenido en path
@@ -81,9 +98,9 @@ menuENG titles notsignificants outputPath = do
                putStr ">> "
                nombreArchivo <- getLine
                nosignificativos <- getWords nombreArchivo
-               -- mapM_ print nosignificativos
+               mapM_ print nosignificativos
                putStrLn $ "File " ++ nombreArchivo ++ " was loaded"
-               menuENG titles notsignificants outputPath
+               menuENG titles nosignificativos outputPath
      "setOutput" -> do
                putStrLn ">>> Output file name: "
                putStr ">> "
@@ -105,7 +122,6 @@ menuENG titles notsignificants outputPath = do
                putStrLn ">>> Input file name: "
                putStr ">> "
                putStrLn $ "---- Basic rotation has been done ------"
-               -- print ((formatKwicList titles notsignificants))
                let outputString = (formatKwicOutput titles notsignificants)
                escribir outputPath outputString
                putStrLn $ "---- Basic rotation has been done ------"
