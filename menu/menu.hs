@@ -88,7 +88,7 @@ generateSizes xs = [length (xs!!i)| i <- [0 .. n]]
 getStartToIndex xs = [ slice 0 ((extraerIndiceSignificativo a)-1) a | a <- xs]
 
 generateSpaces spaces number = do 
-                         if length spaces == (number*2)
+                         if length spaces == (number)
                            then spaces
                          else do
                            generateSpaces (spaces ++ " ") number 
@@ -256,7 +256,7 @@ menuENG titles notsignificants outputPath = do
                 menuENG titles notsignificants outputPath
      "5" -> do
                 let outputString = (formatKwicAlinedOutput titles notsignificants)
-                escribir outputPath outputString
+                escribir outputPath (" " ++ outputString)
                 mapM_ putStrLn (["\n"] ++ generateKwicForConsole titles notsignificants)
                 putStrLn $ "------------------------------------------------------------"
                 putStrLn $ "|--------------Aligned rotation has been done--------------|"
@@ -340,7 +340,7 @@ menuESP titles notsignificants outputPath = do
                 menuESP titles notsignificants outputPath
      "5" -> do
                 let outputString = (formatKwicAlinedOutput titles notsignificants)
-                escribir outputPath outputString
+                escribir outputPath (" " ++ outputString)
                 mapM_ putStrLn (["\n"] ++ generateKwicForConsole titles notsignificants)
                 putStrLn $ "------------------------------------------------------------"
                 putStrLn $ "|-----------Se ha realizado la rotación alineada-----------|"
