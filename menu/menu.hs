@@ -257,7 +257,7 @@ menuENG titles notsignificants outputPath = do
      "5" -> do
                 let outputString = (formatKwicAlinedOutput titles notsignificants)
                 escribir outputPath outputString
-                mapM_ putStrLn (generateKwicForConsole titles notsignificants)
+                mapM_ putStrLn (["\n"] ++ generateKwicForConsole titles notsignificants)
                 putStrLn $ "------------------------------------------------------------"
                 putStrLn $ "|--------------Aligned rotation has been done--------------|"
                 putStrLn $ "------------------------------------------------------------"
@@ -329,7 +329,7 @@ menuESP titles notsignificants outputPath = do
                           menuESP titles notsignificants ""
                 else do 
                   putStrLn $ "El path de salido se ha guardado correctamente"
-                  menuENG titles notsignificants userPath
+                  menuESP titles notsignificants userPath
      "4" -> do
                 -- print ((formatKwicList titles notsignificants))
                 let outputString = (formatKwicOutput titles notsignificants)
@@ -341,7 +341,7 @@ menuESP titles notsignificants outputPath = do
      "5" -> do
                 let outputString = (formatKwicAlinedOutput titles notsignificants)
                 escribir outputPath outputString
-                mapM_ putStrLn (generateKwicForConsole titles notsignificants)
+                mapM_ putStrLn (["\n"] ++ generateKwicForConsole titles notsignificants)
                 putStrLn $ "------------------------------------------------------------"
                 putStrLn $ "|-----------Se ha realizado la rotación alineada-----------|"
                 putStrLn $ "------------------------------------------------------------"
