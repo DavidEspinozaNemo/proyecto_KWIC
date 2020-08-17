@@ -93,6 +93,12 @@ generateSpaces spaces number = do
                          else do
                            generateSpaces (spaces ++ " ") number 
 
+generateConsoleSpaces spaces number = do 
+                         if length spaces == (number)
+                           then spaces
+                         else do
+                           generateConsoleSpaces (spaces ++ " ") number 
+
 -- Obtener tamano de titulo mas grande
 getLongestWords :: [[String]] -> Int
 getLongestWords titles = do
@@ -143,6 +149,17 @@ generateAllKwicAlined2 ts ns =  do
                                 let indices = map findCaps oraciones
                                 let mayor = (sort (indices))!!((length indices)-1)
                                 let nuevosTitulos = [ (generateSpaces "" (mayor-indices!!i)) ++ (oraciones!!i) | i <- [0 .. n]]
+                                                  where n = (length oraciones) - 1
+                                nuevosTitulos
+
+-- For every element in a list of alined titles, generate rotations and add spaces and concatenate the words in each rotation
+generateKwicForConsole ts ns =  do 
+                                let todasRotaciones = concat (map (`kwicAlineado` ns) ts)
+                                let ordenadas = quicksort todasRotaciones
+                                let oraciones = map putSpaces ordenadas
+                                let indices = map findCaps oraciones
+                                let mayor = (sort (indices))!!((length indices)-1)
+                                let nuevosTitulos = [ (generateConsoleSpaces "" (mayor-indices!!i)) ++ (oraciones!!i) | i <- [0 .. n]]
                                                   where n = (length oraciones) - 1
                                 nuevosTitulos
 
@@ -238,9 +255,9 @@ menuENG titles notsignificants outputPath = do
                 putStrLn $ "------------------------------------------------------------"
                 menuENG titles notsignificants outputPath
      "5" -> do
-                -- print ((formatKwicList titles notsignificants))
                 let outputString = (formatKwicAlinedOutput titles notsignificants)
                 escribir outputPath outputString
+                mapM_ putStrLn (generateKwicForConsole titles notsignificants)
                 putStrLn $ "------------------------------------------------------------"
                 putStrLn $ "|--------------Aligned rotation has been done--------------|"
                 putStrLn $ "------------------------------------------------------------"
@@ -324,6 +341,7 @@ menuESP titles notsignificants outputPath = do
      "5" -> do
                 let outputString = (formatKwicAlinedOutput titles notsignificants)
                 escribir outputPath outputString
+                mapM_ putStrLn (generateKwicForConsole titles notsignificants)
                 putStrLn $ "------------------------------------------------------------"
                 putStrLn $ "|-----------Se ha realizado la rotación alineada-----------|"
                 putStrLn $ "------------------------------------------------------------"
