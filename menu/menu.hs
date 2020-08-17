@@ -7,7 +7,7 @@ import qualified Data.Map as Map  -- Imports everything else, but with names
 
 import Prelude hiding (null, lookup, map, filter)
 import Data.Char
-import Data.List (sort,map, nub, concat, filter, sortBy)
+import Data.List (sort,map, nub, concat, filter, sortBy, findIndices)
 import System.IO
 import System.Directory
 import Data.Typeable
@@ -71,31 +71,56 @@ kwic title notSignificants = do let titleRotations = sigRotations (sep (toWords 
                                 map putSpaces (filteredRotations)
 
 
+-- [["SUPER", "man"], ["super", "MAN"], ["SOME", "boy"] ["some", "BOY"]]
 -- Filtra los titulos que poseen indexada una palabra significativa
-quicksort :: (Ord [[String]]) => [[String]] -> [[String]]
+quicksort :: [[String]] -> [[String]]
 quicksort [] = []
-quicksort (x:xs) = quicksort [y | y <- xs, y!!(extraerIndiceSignificativo y) <= x!!(extraerIndiceSignificativo(x))] ++ [x] ++ quicksort [y | y <- xs, y!!(extraerIndiceSignificativo y) > x!!(extraerIndiceSignificativo x)]
+quicksort (x:xs) =
+  let smallerSorted = quicksort [a | a <- xs, (a!!(extraerIndiceSignificativo a)) <= (x!!(extraerIndiceSignificativo x))]
+      biggerSorted = quicksort [a | a <- xs, (a!!(extraerIndiceSignificativo a)) > (x!!(extraerIndiceSignificativo x))]
+  in  smallerSorted ++ [x] ++ biggerSorted
 
--- Generar rotaciones a partir de un array titulo y agregar espacios a cada elemento
--- centrarTitulos titles longestSize = 
+-- Almacenar listas de tamanos de las listas de sub-titulos
+generateSizes xs = [length (xs!!i)| i <- [0 .. n]]
+                where n = (length xs) - 1
 
+-- Generar sub listas que incluyen solo el inicio de los titulos hasta su respectiva palabra significativa
+getStartToIndex xs = [ slice 0 ((extraerIndiceSignificativo a)-1) a | a <- xs]
 
+generateSpaces spaces number = do 
+                         if length spaces == (number*2)
+                           then spaces
+                         else do
+                           generateSpaces (spaces ++ " ") number 
+
+-- Obtener tamano de titulo mas grande
+getLongestWords :: [[String]] -> Int
+getLongestWords titles = do
+                            -- Generar sub listas [["rotacion", "UNO"],["ROTACION","uno"],["rotacion", "DOS"], ["ROTACION", "dos"]]
+                            let startToIndex = getStartToIndex titles
+                            -- Agregar espacios a rotacions [["rotacion ", "UNO "],["ROTACION ","uno "],["rotacion ", "DOS "], ["ROTACION ", "dos "]]
+                            let withSpaces = map putSpaces startToIndex
+                            -- Generar lista con distancias hasta palabra significativa para las rotaciones y obtener distancia mayor
+                            let sizes = generateSizes withSpaces
+                            let maximo = maximum (sizes)
+
+                            maximum (sizes)
+                            
 -- Generar rotaciones a partir de un titulo y agregar espacios a cada elemento
 kwicAlineado title notSignificants = do 
                                         let titleArray = toWords (lowercase(title))
                                         let firstWord = [[(uppercase(titleArray!!0))] ++ ((slice 1 ((length titleArray) - 1)) titleArray)]
                                         let titleRotations = merge (sigAlineadas (titleArray))  firstWord
                                         let lastRotation = merge titleRotations [ (slice 0 ((length titleArray)-2) titleArray) ++ [uppercase(titleArray!!(length titleArray - 1))]]
-                                        let filteredRotations = getAlignedSignificants lastRotation notSignificants
-                                        --let ordenados = quicksort filteredRotations
-                                        map putSpaces (filteredRotations)
-
+                                        getAlignedSignificants lastRotation notSignificants
 
 -- Agrega un salto de linea a strings de una lista
 addNewLineOutputs lista = map (\x -> concat(x : [" \n "])) lista
 
 -- Imprime rotaciones para titulos
 printRotations ts ns = map sigRotations (map sep (map toWords ts))
+
+findCaps palabra = ((findIndices (`elem` ['A'..'Z']) palabra)!!0)
 
 -- Cargar palabras de archivo de texto en lista.
 getWords :: FilePath -> IO [String]
@@ -111,33 +136,25 @@ getLines path = do contents <- readFile path
 generateAllKwic ts ns = map (`kwic` ns) ts
 
 -- For every element in a list of alined titles, generate rotations and add spaces and concatenate the words in each rotation
-generateAllKwicAlined ts ns = map (`kwicAlineado` ns) ts
+generateAllKwicAlined2 ts ns =  do 
+                                let todasRotaciones = concat (map (`kwicAlineado` ns) ts)
+                                let ordenadas = quicksort todasRotaciones
+                                let oraciones = map putSpaces ordenadas
+                                let indices = map findCaps oraciones
+                                let mayor = (sort (indices))!!((length indices)-1)
+                                let nuevosTitulos = [ (generateSpaces "" (mayor-indices!!i)) ++ (oraciones!!i) | i <- [0 .. n]]
+                                                  where n = (length oraciones) - 1
+                                nuevosTitulos
 
 -- For every rotation, add a new line
 formatKwicOutput ts ns = concat(addNewLineOutputs (nub(sort(concat(generateAllKwic ts ns)))))
 
 -- For every rotation, add a new line
-formatKwicAlinedOutput ts ns = concat(addNewLineOutputs (nub(sort(concat(generateAllKwicAlined ts ns)))))
+formatKwicAlinedOutput ts ns = concat(addNewLineOutputs(generateAllKwicAlined2 ts ns))
 
 -- Escribir contenido en path
 escribir :: FilePath -> String -> IO()
 escribir path contenido = writeFile path (contenido)
-
--- resultado alineado 
--- 0. Volver todo el string en minusculas.
---    A partir de aqui ir por lineas, y rehacer el string
--- 1. Obtener la palabra importante (la primera)
--- 1.1 Volverla en mayuscula
--- 2. Avanzar hasta pegar con ><, vamos pegando todo a la derecha de la palabra principal
--- 3. Ir contando los letras restantes, y las vamos pegando a la izquierda de la principal
--- 3.1 guardamos todo en un arreglo
--- 3.2 obtenemos el mas largo, sin afectar el orden
--- 4. la funcion que aplica todo necesita; el string resultante de 3., 3.1, y 3.2
---     A partir de aqui va linea a linea
--- 4.1 toma una linea, el correspodiente de 3.1, y el 3.2
--- 4.2 agrega espacios en blanco, segun la diferencia entre 3.1 y 3.2
--- 4.3 rehace el string, linea por linea
--- fin del resultado alineado
 
 type Estado = Map String Integer
 
@@ -305,7 +322,6 @@ menuESP titles notsignificants outputPath = do
                 putStrLn $ "------------------------------------------------------------"
                 menuESP titles notsignificants outputPath
      "5" -> do
-                -- print ((formatKwicList titles notsignificants))
                 let outputString = (formatKwicAlinedOutput titles notsignificants)
                 escribir outputPath outputString
                 putStrLn $ "------------------------------------------------------------"
